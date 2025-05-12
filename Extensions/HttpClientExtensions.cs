@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Auth.Errors;
+using Auth.Responses;
 
 namespace Auth.Extensions;
 
@@ -13,17 +14,12 @@ public static class HttpExtensions {
         }
     };
 
-    public static async Task<T> FromJson<T>(
-        this Task<HttpResponseMessage> reqTask, 
-        bool dontThrow = false,
-        bool dontDeserialize = false
-    )
+    public static async Task<T?> FromJson<T>(this Task<HttpResponseMessage> reqTask)
     {
         var response = await reqTask;
         var json = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode) {
-            if (dontThrow) return default!;
             try {
                 var error = JsonSerializer.Deserialize<ServiceError>(json, jsonSerializerOptions);
                 throw new ServerException(response.StatusCode, error!.Message);
@@ -32,15 +28,15 @@ public static class HttpExtensions {
             }
         }
 
-        if (dontDeserialize) return (T)(object)json;
-        return JsonSerializer.Deserialize<T>(json, jsonSerializerOptions)
+        var crudResponse = JsonSerializer.Deserialize<CrudResponse<T>>(json, jsonSerializerOptions)
             ?? throw new InternalServerErrorException(
                 cause: new("Failed to deserialize response")
             );
+        return crudResponse.Data;
     }
 
     public static Task Unpack(this Task<HttpResponseMessage> reqTask) 
-        => FromJson<string>(reqTask, dontDeserialize: true);
+        => FromJson<object>(reqTask);
 
     private static StringContent ToJson(object? body) => new(
         JsonSerializer.Serialize(body, jsonSerializerOptions),

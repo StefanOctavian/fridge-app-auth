@@ -75,7 +75,7 @@ public class AuthService(
     public async Task Register(RegisterDTO register)
     {
         var existingUser = await httpClient.GetAsync("User?email=" + register.Email)
-            .FromJson<UserDTO>(dontThrow: true);
+            .FromJson<UserDTO>();
 
         if (existingUser != null) 
             throw new AlreadyExistsException("A user with this email already exists.");
@@ -103,13 +103,18 @@ public class AuthService(
         };
         await httpClient.PostAsync($"User/{newUser.Id}/ActivationToken", activationEntry).Unpack();
 
-        await mailService.SendMail(
-            register.Email,
-            "Welcome to FridgeApp!",
-            MailTemplates.VerificationMail(register.FirstName, activationToken),
-            isHtmlBody: true,
-            senderTitle: "FridgeApp Team"
-        );
+        try {
+            await mailService.SendMail(
+                register.Email,
+                "Welcome to FridgeApp!",
+                MailTemplates.VerificationMail(register.FirstName, activationToken),
+                isHtmlBody: true,
+                senderTitle: "FridgeApp Team"
+            );
+        } catch (Exception ex) {
+            await httpClient.DeleteAsync($"User/{newUser.Id}").Unpack();
+            throw new ServiceUnavailableException("Failed to send verification email.", ex);
+        }
     }
 
     public async Task VerifyEmail(string token)
@@ -119,6 +124,6 @@ public class AuthService(
 
         if (user.IsVerified) throw new BadRequestException("This account is already verified.");
 
-        await httpClient.PatchAsync("Users/" + user.Id, new { IsVerified = true }).Unpack();
+        await httpClient.PatchAsync("User/" + user.Id, new { IsVerified = true }).Unpack();
     }
 }
