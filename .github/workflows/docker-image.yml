@@ -26,10 +26,10 @@ jobs:
 
     - name: Build the Docker image
       run: docker build . --file Dockerfile ${{ secrets.DOCKERHUB_USERNAME }}/idp-fridge-app-auth:latest \
-        -t ${{ DOCKERHUB_USERNAME }}/idp-fridge-app-auth:${{ env.SHORT_SHA }}
+        -t ${{ secrets.DOCKERHUB_USERNAME }}/idp-fridge-app-auth:${{ env.SHORT_SHA }}
 
     - name: Push the image to Dockerhub
       run: |
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/idp-fridge-app-auth:latest
-        docker push ${{ DOCKERHUB_USERNAME }}/idp-fridge-app-auth:${{ env.SHORT_SHA }}
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/idp-fridge-app-auth:${{ env.SHORT_SHA }}
 
