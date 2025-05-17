@@ -35,3 +35,5 @@ public class Program
         app.Run();
     }
 }
+
+// Comment to test the GitHub Actions
