@@ -25,7 +25,7 @@ jobs:
       run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile ${{ secrets.DOCKERHUB_USERNAME }}/idp-fridge-app-auth:latest \
+      run: docker build . --file Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/idp-fridge-app-auth:latest \
         -t ${{ secrets.DOCKERHUB_USERNAME }}/idp-fridge-app-auth:${{ env.SHORT_SHA }}
 
     - name: Push the image to Dockerhub
