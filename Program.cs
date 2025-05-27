@@ -36,4 +36,4 @@ public class Program
     }
 }
 
-// Comment to test the GitHub Actions
+// Comment to test the GitHub Actions 2
